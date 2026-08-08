@@ -2,5 +2,22 @@
 name = "lede"
 version = "0.1.0"
 edition = "2024"
+# Floor set by let chains, stable since 1.88.
+rust-version = "1.88"
+license = "GPL-3.0-or-later"
+autolib = false
+publish = false
+description = "Minimalist git commit message generator."
+repository = "https://github.com/eljpsm/lede"
 
 [dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+ureq = { version = "3", features = ["json"] }
+
+[profile.release]
+strip = true
+lto = true
