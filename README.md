@@ -1,13 +1,12 @@
 # lede
 
-Minimalist git commit message generator. lede reads your **staged** diff, asks
-an OpenAI-compatible API for a commit message, enforces the [50/72
-rule](https://cbea.ms/git-commit/), and prints the message to stdout.
+Minimalist git commit message generator.
 
-```sh
-git add -p
-git commit -m "$(lede generate)"
-```
+lede reads your **staged** diff, asks an OpenAI-compatible API for a commit
+message, enforces the [50/72 rule](https://cbea.ms/git-commit/), and prints the
+message to stdout.
+
+## Install
 
 ```bash
 # Straight from GitHub:
@@ -103,3 +102,11 @@ mode = "none"
   failures exit non-zero, so `git commit -m "$(lede generate)"` composes safely.
 - Diffs larger than 64 KiB are truncated (the full staged file list is always
   sent, so the model still sees the commit's scope).
+
+## Acknowledgements
+
+lede is inspired by [gac by thomwebb](https://github.com/thomwebb/gac).
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).
