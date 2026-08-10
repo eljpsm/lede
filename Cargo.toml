@@ -15,9 +15,14 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-toml = "0.9"
+toml = "1"
 ureq = { version = "3", features = ["json"] }
 
 [profile.release]
 strip = true
 lto = true
+
+# Make plain `cargo clippy` and rust-analyzer as strict as CI. Clippy lints
+# do not run under `cargo build`, so toolchain bumps cannot break `nix build`.
+[lints.clippy]
+all = "deny"
