@@ -18,32 +18,32 @@ use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::thread::JoinHandle;
 
+use tempfile::TempDir;
+
 /// A scratch home and repository, removed on drop.
 struct TempTree {
-    root: PathBuf,
+    root: TempDir,
 }
 
 impl TempTree {
-    /// `name` must be unique per test: tests run in parallel in one process,
-    /// so the pid alone would not keep two trees apart. Any leftover from a
-    /// killed run is cleared first, which is why the name is stable rather
-    /// than random.
     fn new(name: &str) -> Self {
-        let root = std::env::temp_dir().join(format!("lede-cli-{}-{name}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&root);
-        std::fs::create_dir_all(root.join("home")).unwrap();
-        std::fs::create_dir_all(root.join("repo")).unwrap();
+        let root = tempfile::Builder::new()
+            .prefix(&format!("lede-cli-{name}-"))
+            .tempdir()
+            .unwrap();
+        std::fs::create_dir_all(root.path().join("home")).unwrap();
+        std::fs::create_dir_all(root.path().join("repo")).unwrap();
         let tree = TempTree { root };
         git(&tree, &["init", "-q"]);
         tree
     }
 
     fn home(&self) -> PathBuf {
-        self.root.join("home")
+        self.root.path().join("home")
     }
 
     fn repo(&self) -> PathBuf {
-        self.root.join("repo")
+        self.root.path().join("repo")
     }
 
     fn config_dir(&self) -> PathBuf {
@@ -53,12 +53,6 @@ impl TempTree {
     fn stage_file(&self, file_name: &str, contents: &str) {
         std::fs::write(self.repo().join(file_name), contents).unwrap();
         git(self, &["add", file_name]);
-    }
-}
-
-impl Drop for TempTree {
-    fn drop(&mut self) {
-        let _ = std::fs::remove_dir_all(&self.root);
     }
 }
 
@@ -389,7 +383,7 @@ fn nothing_staged_fails_before_any_request() {
 #[test]
 fn a_non_repository_fails_before_config_loading() {
     let tree = TempTree::new("not-repo");
-    let dir = tree.root.join("not-repo");
+    let dir = tree.root.path().join("not-repo");
     std::fs::create_dir_all(&dir).unwrap();
 
     let output = Command::new(env!("CARGO_BIN_EXE_lede"))
