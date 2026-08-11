@@ -11,3 +11,6 @@ result
 # Environment variables
 .env*
 !.env.example
+
+# goreleaser build output
+/dist

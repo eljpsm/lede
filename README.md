@@ -19,6 +19,9 @@ nix run github:eljpsm/lede
 make install
 ```
 
+Prebuilt Linux binaries are on the [releases
+page](https://github.com/eljpsm/lede/releases).
+
 ## Usage
 
 ```sh
