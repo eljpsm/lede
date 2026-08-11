@@ -52,26 +52,33 @@ struct ApiErrorBody {
     message: String,
 }
 
+/// The agent shared by every call in one run, so the subject-shortening
+/// retry reuses the first call's connection instead of paying a second
+/// TCP and TLS handshake.
+///
+/// status-as-error is off because a non-2xx body carries the provider's
+/// own error message, which beats a bare status code on stderr. The
+/// timeout is generous for slow local models but still ends a hung
+/// provider; without one, `git commit -m "$(lede generate)"` blocks forever.
+pub(crate) fn agent() -> ureq::Agent {
+    ureq::Agent::config_builder()
+        .http_status_as_error(false)
+        .timeout_global(Some(Duration::from_secs(120)))
+        .build()
+        .into()
+}
+
 /// One chat-completions call, returning the assistant's text. Takes the
 /// full message list rather than a fixed system-and-user pair so the
 /// subject-shortening retry in `app` can extend the conversation.
 pub(crate) fn chat(
+    agent: &ureq::Agent,
     base_url: &str,
     model: &str,
     authorization: &Authorization,
     messages: &[ChatMessage],
 ) -> anyhow::Result<String> {
     let url = format!("{}/chat/completions", base_url.trim_end_matches('/'));
-    // status-as-error is off because a non-2xx body carries the provider's
-    // own error message, which beats a bare status code on stderr. The
-    // timeout is generous for slow local models but still ends a hung
-    // provider; without one, `git commit -m "$(lede generate)"` blocks forever.
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .http_status_as_error(false)
-        .timeout_global(Some(Duration::from_secs(120)))
-        .build()
-        .into();
-
     let mut request = agent.post(&url);
     if let Authorization::Bearer(key) = authorization {
         request = request.header("Authorization", &format!("Bearer {key}"));

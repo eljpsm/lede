@@ -94,7 +94,14 @@ fn generate(
         },
     ];
 
-    let raw = api::chat(&config.base_url, &config.model, &authorization, &messages)?;
+    let agent = api::agent();
+    let raw = api::chat(
+        &agent,
+        &config.base_url,
+        &config.model,
+        &authorization,
+        &messages,
+    )?;
     let mut message = format::parse(&format::sanitize(&raw));
 
     // The system prompt asks for a 50-character subject, but the reply is
@@ -116,7 +123,13 @@ fn generate(
                 format::SUBJECT_LIMIT,
             ),
         });
-        if let Ok(retry) = api::chat(&config.base_url, &config.model, &authorization, &messages) {
+        if let Ok(retry) = api::chat(
+            &agent,
+            &config.base_url,
+            &config.model,
+            &authorization,
+            &messages,
+        ) {
             let retry = format::parse(&format::sanitize(&retry));
             if format::subject_fits(&retry.subject) {
                 message = retry;
